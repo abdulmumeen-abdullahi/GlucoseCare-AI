@@ -332,11 +332,27 @@ def router_node(state: AgentState) -> AgentState:
     query = state.get("input", "")
     state.add_to_history("user", query)
 
-    decision = chatGemini.with_structured_output(RouteDecision).invoke(
-        router_prompt.format(question=query)
-    )
+    # Prevent asking twice for prediction
+    if state.get("prediction_offered", False):
+        decision = RouteDecision(next_step="consultant")
+    else:
+        decision = chatGemini.with_structured_output(RouteDecision).invoke(
+            router_prompt.format(question=query)
+        )
 
+    # Store next step in state
     state["next_step"] = decision.next_step
+
+    # Handle refusal inline if next_step == "end"
+    if decision.next_step == "end":
+        refusal = "I'm here to help with diabetes-related questions only. Please ask me about diabetes symptoms, risks, or lifestyle. Thanks."
+        state.add_to_history("assistant", refusal)
+        state["output"] = refusal
+
+    # Mark that prediction has been offered once
+    if decision.next_step == "prediction_offer":
+        state["prediction_offered"] = True
+
     return state
 
 # ==================================      Build LangGraph      ==================================
