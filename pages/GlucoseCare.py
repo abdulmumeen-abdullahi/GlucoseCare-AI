@@ -1,23 +1,17 @@
 # Import needed libraries
 import os
-import pickle
-import joblib
-import numpy as np
 import uuid
-from typing import Any, Dict, List, Literal
-from dotenv import load_dotenv, find_dotenv
+import sqlite3
+from typing import Literal
 import pandas as pd
-from IPython.display import Image
+import joblib
 import streamlit as st
 import google.generativeai as genai
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import ChatPromptTemplate
-from langchain.tools import tool
-from langchain_core.messages import HumanMessage
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph
 from huggingface_hub import hf_hub_download
 from pydantic import BaseModel, Field
-import sqlite3
 
 # Access the Google API Key
 os.environ["GOOGLE_API_KEY"] = st.secrets['GOOGLE_API_KEY']
@@ -53,7 +47,6 @@ class SQLiteMemory:
             (session_id,)
         )
         return cur.fetchall()
-
 memory = SQLiteMemory("memory.db")
 
 # Define Agent
@@ -80,9 +73,13 @@ chatGemini = ChatGoogleGenerativeAI(
 # Define the Prompt Template
 consultant_prompt = ChatPromptTemplate.from_messages([
     ("system",
-     "You are a diabetes consultant. "
-     "Answer ONLY diabetes-related questions using ADA guidelines concisely and include a safety disclaimer. "
-     "Refuse all other topics."),
+     "You are a diabetes consultant and must follow the ADA (American Diabetes Association) guidelines. "
+     "Your task is to answer ONLY questions that are directly or indirectly related to diabetes. "
+     "This includes symptoms (even if diabetes is not explicitly mentioned), diagnosis, risk factors, lifestyle, diet, complications, monitoring, and treatment. "
+     "If the user mentions a symptom or condition that *can be linked to diabetes* (e.g., visual blurring, weakness, frequent urination), you should treat it as diabetes-related and provide a concise, guideline-based response. "
+     "Always provide a short safety disclaimer reminding the user to consult a qualified healthcare professional. "
+     "If the user’s question is completely unrelated to health or diabetes, politely refuse. "
+     "Keep answers concise, evidence-based, and user-friendly."),
     ("user", "{question}")
 ])
 
@@ -90,15 +87,78 @@ def consultant_node(state: AgentState) -> AgentState:
     query = state.get("input", "")
     state.add_to_history("user", query)
 
+    # Symptom Detection Logic
+    symptoms_list = [
+        "polyuria", "polydipsia", "sudden weight loss", "weakness", "polyphagia",
+        "genital thrush", "visual blurring", "itching", "irritability",
+        "delayed healing", "partial paresis", "muscle stiffness", "alopecia", "obesity"
+    ]
+
+    # If any symptom keyword detected, flag prediction offer
+    if any(symptom in query.lower() for symptom in symptoms_list):
+        state["offer_prediction"] = True
+    else:
+        state["offer_prediction"] = False
+
+    # Consultant Response
     answer = chatGemini.invoke(consultant_prompt.format(question=query))
-    state["output"] = answer.content
+    response = answer.content
+
+    # If prediction offer, follow-up
+    if state.get("offer_prediction", False):
+        response += "\n\nI noticed you mentioned possible diabetes symptoms. " \
+                    "Would you like me to run a diabetes risk prediction model for you? (Yes/No)"
+        state["next_step"] = "prediction_offer"
+    else:
+        state["next_step"] = None
+
+    state["output"] = response
 
     # Persist assistant response
-    state.add_to_history("assistant", answer.content)
-
-    state["next_step"] = None
+    state.add_to_history("assistant", response)
     return state
 
+# ==================================      Prediction Offer Node      ==================================
+def prediction_offer_node(state: AgentState) -> AgentState:
+    reply = state.get("input", "")
+
+    # Gemini classification
+    intent_prompt = ChatPromptTemplate.from_messages([
+        ("system",
+         "You are an intent classifier. "
+         "Decide if the user wants to proceed with diabetes risk prediction. "
+         "Answer only 'yes' or 'no'."),
+        ("user", reply)
+    ])
+
+    decision = chatGemini.invoke(intent_prompt).content.strip().lower()
+
+    if "yes" in decision:
+        # Check if we already have patient features in memory
+        features = state.get("features", {})
+
+        # Ensure it's a dict
+        if not isinstance(features, dict):
+            features = {}
+        
+        # If enough features are already present, go straight to Doctor
+        
+        required_fields = PatientFeatures.model_fields.keys()
+        if all(field in features for field in required_fields):
+            state["next_step"] = "doctor"
+            state["output"] = "I already have your details from earlier. Running your risk prediction now..."
+        else:
+            state["next_step"] = "feature_collection"
+            state["output"] = "Great! Let’s start with some simple questions."
+    else:
+        state["next_step"] = "consultant"
+        state["output"] = "No problem, we can continue chatting about diabetes."
+
+    # Save response in memory
+    state.add_to_history("assistant", state["output"])
+    return state
+
+===================================================================================
 # Download Model
 REPO_ID = "VisionaryQuant/Early-Stage-Diabetes-Prediction-Model"
 MODEL_FILENAME = "early_stage_diabetes_best_model.pkl"
@@ -225,7 +285,7 @@ def doctor_node(state: AgentState) -> AgentState:
     state["output"] = final_output
     state.add_to_history("assistant", final_output)
     state["features"] = features
-    state["next_step"] = None
+    state["next_step"] = "consultant"
     return state
 
 # ==================================      Router Node      ==================================
