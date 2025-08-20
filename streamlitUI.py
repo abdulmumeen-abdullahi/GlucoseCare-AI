@@ -8,23 +8,35 @@ st.page_link("streamlitUI.py", label="HOME")
 st.page_link("pages/GlucoseCare.py", label="Diabetes Consultant")
 
 # ================== Styling ==================
-background_color = "#FFF8F0"
-text_color = "#2E2E2E"
-highlight_color = "#E63946"
+background_color = "#F6FFF0"
+text_color = "#2E382E"
+highlight_color = "#A3C85A"
 
 st.markdown(f"""
     <style>
-        body {{ background-color: {background_color}; color: {text_color}; }}
-        .stApp {{ background-color: {background_color}; }}
-        .block-container {{ padding-top: 2rem; padding-left: 3rem; padding-right: 3rem; }}
-        h1, h2, h3, h4, h5, h6 {{ color: {highlight_color}; }}
-        p, div, label {{ color: {text_color}; font-size: 1.1rem; }}
-        .stButton>button {{ background-color: {highlight_color}; color: white; font-weight: bold; }}
+        body {{
+            background-color: {background_color};
+            color: {text_color};
+        }}
+        .stApp {{
+            background-color: {background_color};
+        }}
+        .block-container {{
+            padding-top: 2rem;
+        }}
+        h1, h2, h3, h4, h5, h6 {{
+            color: {highlight_color};
+        }}
+        p, div, label {{
+            color: {text_color};
+            font-size: 1.1rem;
+        }}
     </style>
 """, unsafe_allow_html=True)
 
-st.title("GlucoseCare AI")
-st.header("Empowering People to Understand & Manage Diabetes")
+# Main content
+st.title("GlucoseCare AI - Your intelligent companion for early diabetes risk prediction and guidance.")
+st.header("Empowering People to Understand & Manage Diabetes Effectively")
 
 st.write("""
 Welcome to **GlucoseCare AI**, your intelligent assistant for diabetes awareness, risk prediction, and guidance.
@@ -44,3 +56,6 @@ st.markdown("""
 """)
 
 st.success("Take control of your health today!")
+
+st.markdown("---")
+st.caption("Powered by LangGraph + Gemini-1.5-flash + Scikit-Learn | Built with ❤️ for Nigerian farmers")
