@@ -9,7 +9,7 @@ st.set_page_config(
 
 # Page links
 st.page_link("streamlitUI.py", label="HOME")
-st.page_link("GlucoseCare.py", label="Crop Yield Prediction")
+st.page_link("GlucoseCare.py", label="ChatWithDoc")
 
 # ================== Page Navigation ==================
 st.sidebar.title("Navigation")
