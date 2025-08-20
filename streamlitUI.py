@@ -7,6 +7,10 @@ st.set_page_config(
     layout='wide'
 )
 
+# Page links
+st.page_link("streamlitUI.py", label="HOME")
+st.page_link("GlucoseCare.py", label="Crop Yield Prediction")
+
 # ================== Page Navigation ==================
 st.sidebar.title("Navigation")
 page = st.sidebar.radio(
