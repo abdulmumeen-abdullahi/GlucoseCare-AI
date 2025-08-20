@@ -4,8 +4,8 @@ import streamlit as st
 st.set_page_config(page_title='GlucoseCare AI', page_icon='🩺', layout='wide')
 
 # Page links
-#st.page_link("streamlitUI.py", label="HOME")
-#st.page_link("pages/GlucoseCare.py", label="Diabetes Consultant")
+st.page_link("streamlitUI.py", label="HOME")
+st.page_link("pages/GlucoseCare.py", label="Diabetes Consultant")
 
 # ================== Styling ==================
 background_color = "#F6FFF0"
