@@ -105,6 +105,46 @@ def consultant_node(state: AgentState) -> AgentState:
     state.add_to_history("assistant", response)
     return state
 
+# ==================================      Prediction Offer Node      ==================================
+def prediction_offer_node(state: AgentState) -> AgentState:
+    reply = state.get("input", "")
+
+    # Gemini classification
+    intent_prompt = ChatPromptTemplate.from_messages([
+        ("system",
+         "You are an intent classifier. "
+         "Decide if the user wants to proceed with diabetes risk prediction. "
+         "Answer only 'yes' or 'no'."),
+        ("user", reply)
+    ])
+
+    decision = chatGemini.invoke(intent_prompt).content.strip().lower()
+
+    if "yes" in decision:
+        # Check if we already have patient features in memory
+        features = state.get("features", {})
+
+        # Ensure it's a dict
+        if not isinstance(features, dict):
+            features = {}
+        
+        # If enough features are already present, go straight to Doctor
+        
+        required_fields = PatientFeatures.model_fields.keys()
+        if all(field in features for field in required_fields):
+            state["next_step"] = "doctor"
+            state["output"] = "I already have your details from earlier. Running your risk prediction now..."
+        else:
+            state["next_step"] = "feature_collection"
+            state["output"] = "Great! Let’s start with some simple questions."
+    else:
+        state["next_step"] = "consultant"
+        state["output"] = "No problem, we can continue chatting about diabetes."
+
+    # Save response in memory
+    state.add_to_history("assistant", state["output"])
+    return state
+    
 # Download Model
 REPO_ID = "VisionaryQuant/Early-Stage-Diabetes-Prediction-Model"
 MODEL_FILENAME = "early_stage_diabetes_best_model.pkl"
