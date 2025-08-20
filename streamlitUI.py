@@ -7,16 +7,10 @@ st.set_page_config(
     layout='wide'
 )
 
+# ================== Page Links ==================
 # Page links
 st.page_link("streamlitUI.py", label="HOME")
-st.page_link("GlucoseCare.py", label="ChatWithDoc")
-
-# ================== Page Navigation ==================
-st.sidebar.title("Navigation")
-page = st.sidebar.radio(
-    "Go to",
-    ["Home", "Diabetes Risk Prediction", "Diabetes Consultant"]
-)
+st.page_link("GlucoseCare.py", label="Diabetes Consultant")
 
 # ================== Styling ==================
 background_color = "#FFF8F0"
@@ -55,7 +49,7 @@ st.markdown(f"""
 # ================== Home Page ==================
 if page == "Home":
     st.title("GlucoseCare AI")
-    st.header("Empowering Nigerians to Understand & Manage Diabetes")
+    st.header("Empowering People to Understand & Manage Diabetes")
     
     st.write("""
     Welcome to **GlucoseCare AI**, your intelligent assistant for diabetes awareness, risk prediction, and guidance.
