@@ -47,7 +47,6 @@ class SQLiteMemory:
             (session_id,)
         )
         return cur.fetchall()
-
 memory = SQLiteMemory("memory.db")
 
 # Define Agent
