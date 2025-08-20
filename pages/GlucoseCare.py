@@ -9,9 +9,9 @@ import streamlit as st
 import google.generativeai as genai
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import ChatPromptTemplate
-from langgraph.graph import StateGraph
+from langgraph.graph import StateGraph, END
 from huggingface_hub import hf_hub_download
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 # Access the Google API Key
 os.environ["GOOGLE_API_KEY"] = st.secrets['GOOGLE_API_KEY']
@@ -69,8 +69,60 @@ chatGemini = ChatGoogleGenerativeAI(
     google_api_key = google_api_key
 )
 
+# ==================================      Model & Schema      ==================================
+# Download Model
+REPO_ID = "VisionaryQuant/Early-Stage-Diabetes-Prediction-Model"
+MODEL_FILENAME = "early_stage_diabetes_best_model.pkl"
+
+model_path = hf_hub_download(repo_id=REPO_ID, filename=MODEL_FILENAME)
+print(f"Model downloaded to: {model_path}")
+
+# Load Early Stage Diabetes model
+model = joblib.load(model_path)
+
+# Feature Schema for Random Forest model
+class PatientFeatures(BaseModel):
+    Age: int = Field(..., description="Age of the patient between 20 and 65")
+    Gender: Literal[1, 2] = Field(..., description="1=Male, 2=Female")
+    Polyuria: Literal[0, 1]
+    Polydipsia: Literal[0, 1]
+    sudden_weight_loss: Literal[0, 1]
+    weakness: Literal[0, 1]
+    Polyphagia: Literal[0, 1]
+    Genital_thrush: Literal[0, 1]
+    visual_blurring: Literal[0, 1]
+    Itching: Literal[0, 1]
+    Irritability: Literal[0, 1]
+    delayed_healing: Literal[0, 1]
+    partial_paresis: Literal[0, 1]
+    muscle_stiffness: Literal[0, 1]
+    Alopecia: Literal[0, 1]
+    Obesity: Literal[0, 1]
+
+# Router decision schema
+class RouteDecision(BaseModel):
+    next_step: Literal["consultant", "prediction_offer", "end"]
+
+# Router prompt Template
+router_prompt = ChatPromptTemplate.from_messages([
+    ("system",
+     "You are a router that decides whether a user query is diabetes-related. "
+     "Rules: "
+     "1. If the query is unrelated to diabetes or health, respond politely with a short refusal message "
+     "and set next_step='end'. "
+     "2. If the query is about diabetes risks, lifestyle, diet, monitoring, or complications (but not heavy symptoms), "
+     "set next_step='consultant'. "
+     "3. If the query contains multiple or strong diabetes-related symptoms "
+     "(e.g., frequent urination, excessive thirst, sudden weight loss, weakness, visual blurring), "
+     "then offer the user: 'I noticed your question involves symptoms of diabetes. "
+     "Would you like me to also provide a diabetes risk prediction?' "
+     "If yes → next_step='prediction_offer', else → next_step='consultant'. "
+     "Note: The risk prediction should only be offered once per conversation."),
+    ("user", "{question}")
+])
+
 # ==================================      Consultant Node      ==================================
-# Define the Prompt Template
+# Prompt Template
 consultant_prompt = ChatPromptTemplate.from_messages([
     ("system",
      "You are a diabetes consultant and must follow the ADA (American Diabetes Association) guidelines. "
@@ -86,19 +138,6 @@ consultant_prompt = ChatPromptTemplate.from_messages([
 def consultant_node(state: AgentState) -> AgentState:
     query = state.get("input", "")
     state.add_to_history("user", query)
-
-    # Symptom Detection Logic
-    symptoms_list = [
-        "polyuria", "polydipsia", "sudden weight loss", "weakness", "polyphagia",
-        "genital thrush", "visual blurring", "itching", "irritability",
-        "delayed healing", "partial paresis", "muscle stiffness", "alopecia", "obesity"
-    ]
-
-    # If any symptom keyword detected, flag prediction offer
-    if any(symptom in query.lower() for symptom in symptoms_list):
-        state["offer_prediction"] = True
-    else:
-        state["offer_prediction"] = False
 
     # Consultant Response
     answer = chatGemini.invoke(consultant_prompt.format(question=query))
@@ -290,23 +329,14 @@ def doctor_node(state: AgentState) -> AgentState:
 
 # ==================================      Router Node      ==================================
 def router_node(state: AgentState) -> AgentState:
-    user_input = state.get("user_input", "")
-    state.add_to_history("user", user_input)
+    query = state.get("input", "")
+    state.add_to_history("user", query)
 
-    class RouteDecision(BaseModel):
-        next_step: Literal["consultant", "feature_collection"]
-
-    if any(symptom in user_input.lower() for symptom in ["Polyuria", "Polydipsia", "sudden_weight_loss", "weakness", "Polyphagia", 
-                                                         "Genital thrush", "visual blurring", "Itching", "Irritability", "delayed_healing", 
-                                                         "partial paresis", "muscle_stiffness", "Alopecia", "Obesity"]
-):
-        decision = RouteDecision(next_step="feature_collection")
-    else:
-        decision = RouteDecision(next_step="consultant")
+    decision = chatGemini.with_structured_output(RouteDecision).invoke(
+        router_prompt.format(question=query)
+    )
 
     state["next_step"] = decision.next_step
-    state["output"] = f"Routing to {decision.next_step}..."
-    state.add_to_history("system", f"Routing to {decision.next_step}")
     return state
 
 # ==================================      Build LangGraph      ==================================
