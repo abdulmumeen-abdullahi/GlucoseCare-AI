@@ -1,9 +1,10 @@
 pandas==2.2.2
 joblib==1.5.1
 streamlit==1.39.0
-google-generativeai==0.8.5
-langchain-google-genai==2.1.9
 langgraph==0.6.5
 huggingface-hub==0.34.3
 pydantic==2.11.7
 plotly==5.24.1
+google-ai-generativelanguage==0.6.18
+google-generativeai==0.8.7
+langchain-google-genai==2.1.9
