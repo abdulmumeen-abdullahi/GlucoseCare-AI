@@ -94,15 +94,31 @@ def consultant_node(state: AgentState) -> AgentState:
     query = state.get("input", "")
     state.add_to_history("user", query)
 
+    # Symptom Detection Logic
+    symptoms_list = [
+        "polyuria", "polydipsia", "sudden weight loss", "weakness", "polyphagia",
+        "genital thrush", "visual blurring", "itching", "irritability",
+        "delayed healing", "partial paresis", "muscle stiffness", "alopecia", "obesity"
+    ]
+
+    # If any symptom keyword detected, flag prediction offer
+    if any(symptom in query.lower() for symptom in symptoms_list):
+        state["offer_prediction"] = True
+    else:
+        state["offer_prediction"] = False
+
+    # Consultant Response
     answer = chatGemini.invoke(consultant_prompt.format(question=query))
     response = answer.content
 
-    # If prediction offer
+    # If prediction offer, follow-up
     if state.get("offer_prediction", False):
-        response += "\n\nWould you like me to run a diabetes risk prediction model for you? (Yes/No)"
+        response += "\n\nI noticed you mentioned possible diabetes symptoms. " \
+                    "Would you like me to run a diabetes risk prediction model for you? (Yes/No)"
         state["next_step"] = "prediction_offer"
     else:
         state["next_step"] = None
+
     state["output"] = response
 
     # Persist assistant response
