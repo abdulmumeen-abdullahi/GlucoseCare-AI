@@ -91,12 +91,18 @@ def consultant_node(state: AgentState) -> AgentState:
     state.add_to_history("user", query)
 
     answer = chatGemini.invoke(consultant_prompt.format(question=query))
-    state["output"] = answer.content
+    response = answer.content
+
+    # If prediction offer
+    if state.get("offer_prediction", False):
+        response += "\n\nWould you like me to run a diabetes risk prediction model for you? (Yes/No)"
+        state["next_step"] = "prediction_offer"
+    else:
+        state["next_step"] = None
+    state["output"] = response
 
     # Persist assistant response
-    state.add_to_history("assistant", answer.content)
-
-    state["next_step"] = None
+    state.add_to_history("assistant", response)
     return state
 
 # Download Model
