@@ -10,7 +10,7 @@ st.set_page_config(
 # ================== Page Links ==================
 # Page links
 st.page_link("streamlitUI.py", label="HOME")
-#st.page_link("GlucoseCare.py", label="Diabetes Consultant")
+st.page_link("GlucoseCare.py", label="Diabetes Consultant")
 
 # ================== Styling ==================
 background_color = "#FFF8F0"
