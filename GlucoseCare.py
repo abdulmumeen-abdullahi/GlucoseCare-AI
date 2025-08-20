@@ -144,7 +144,8 @@ def prediction_offer_node(state: AgentState) -> AgentState:
     # Save response in memory
     state.add_to_history("assistant", state["output"])
     return state
-    
+
+===================================================================================
 # Download Model
 REPO_ID = "VisionaryQuant/Early-Stage-Diabetes-Prediction-Model"
 MODEL_FILENAME = "early_stage_diabetes_best_model.pkl"
@@ -271,7 +272,7 @@ def doctor_node(state: AgentState) -> AgentState:
     state["output"] = final_output
     state.add_to_history("assistant", final_output)
     state["features"] = features
-    state["next_step"] = None
+    state["next_step"] = "consultant"
     return state
 
 # ==================================      Router Node      ==================================
