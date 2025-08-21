@@ -315,35 +315,47 @@ def doctor_node(state: AgentState) -> AgentState:
         state["output"] = "No patient features found. Please restart the intake."
         return state
 
-    X = pd.DataFrame([features])
-    prediction = model.predict(X)[0]
-    prob = model.predict_proba(X)[0].max()
-    result = "Positive" if prediction == 1 else "Negative"
+    try:
+        # Validate features against schema before prediction
+        PatientFeatures(**features)
 
-    base_message = (
-        f"Prediction: {result} (confidence: {prob:.2f}). "
-        "This is not medical advice. Please consult a doctor."
-    )
+        # Prepare input for model
+        X = pd.DataFrame([features])
+        prediction = model.predict(X)[0]
+        prob = model.predict_proba(X)[0].max()
+        result = "Positive" if prediction == 1 else "Negative"
 
-    patient_summary = ", ".join([f"{k}: {v}" for k, v in features.items()])
-    preventive_prompt = ChatPromptTemplate.from_messages([
-        ("system",
-         "You are a diabetes prevention advisor. "
-         "Based on patient risk prediction and their features, provide evidence-based lifestyle or dietary preventive measures. "
-         "Be concise. Always include a disclaimer that this is not medical advice."),
-        ("user", f"Patient features: {patient_summary}\n"
-                 f"Model result: {result} (confidence {prob:.2f})\n"
-                 f"Give preventive advice.")
-    ])
+        base_message = (
+            f"Prediction: {result} (confidence: {prob:.2f}). "
+            "This is not medical advice. Please consult a doctor."
+        )
 
-    advice = chatGemini.invoke(preventive_prompt).content
-    final_output = base_message + "\n\nPreventive Advice:\n" + advice
+        # Build patient summary string
+        patient_summary = ", ".join([f"{k}: {v}" for k, v in features.items()])
+
+        preventive_prompt = ChatPromptTemplate.from_messages([
+            ("system",
+             "You are a diabetes prevention advisor. "
+             "Based on patient risk prediction and their features, provide evidence-based lifestyle or dietary preventive measures. "
+             "Be concise. Always include a disclaimer that this is not medical advice."),
+            ("user", f"Patient features: {patient_summary}\n"
+                     f"Model result: {result} (confidence {prob:.2f})\n"
+                     f"Give preventive advice.")
+        ])
+
+        advice = chatGemini.invoke(preventive_prompt).content
+        final_output = base_message + "\n\nPreventive Advice:\n" + advice
+
+        state["output"] = final_output
+        state.add_to_history("assistant", final_output)
+        state["next_step"] = "consultant"  # return to consultant after prediction
 
     except ValidationError as e:
-    msg = f"Some details are missing or invalid: {e}. Please restart the intake."
-    state["output"] = msg
-    state.add_to_history("assistant", msg)
-    state["next_step"] = "consultant"
+        msg = f"Some details are missing or invalid: {e}. Please restart the intake."
+        state["output"] = msg
+        state.add_to_history("assistant", msg)
+        state["next_step"] = "consultant"
+
     return state
 
 # ==================================      Router Node      ==================================
