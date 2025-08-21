@@ -146,7 +146,7 @@ def consultant_node(state: AgentState) -> AgentState:
 def prediction_offer_node(state: AgentState) -> AgentState:
     reply = state.get("input", "")
 
-    # Gemini classification
+    # Classify yes/no intent
     intent_prompt = ChatPromptTemplate.from_messages([
         ("system",
          "You are an intent classifier. "
@@ -154,20 +154,17 @@ def prediction_offer_node(state: AgentState) -> AgentState:
          "Answer only 'yes' or 'no'."),
         ("user", reply)
     ])
-
     decision = chatGemini.invoke(intent_prompt).content.strip().lower()
 
-    if "yes" in decision:
-        # Check if we already have patient features in memory
-        features = state.get("features", {})
+    # Get existing patient features
+    features = state.get("features") or {}
+    if not isinstance(features, dict):
+        features = {}
 
-        # Ensure it's a dict
-        if not isinstance(features, dict):
-            features = {}
-        
-        # If enough features are already present, go straight to Doctor
-        
-        required_fields = PatientFeatures.model_fields.keys()
+    # If enough features are already present, go straight to Doctor
+    required_fields = PatientFeatures.model_fields.keys()
+
+    if "yes" in decision:
         if all(field in features for field in required_fields):
             state["next_step"] = "doctor"
             state["output"] = "I already have your details from earlier. Running your risk prediction now..."
@@ -178,10 +175,10 @@ def prediction_offer_node(state: AgentState) -> AgentState:
         state["next_step"] = "consultant"
         state["output"] = "No problem, we can continue chatting about diabetes."
 
-    # Save response in memory
+    # Save assistant message in memory
     state.add_to_history("assistant", state["output"])
     return state
-
+    
 ===================================================================================
 # Download Model
 REPO_ID = "VisionaryQuant/Early-Stage-Diabetes-Prediction-Model"
