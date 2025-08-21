@@ -138,12 +138,12 @@ router_prompt = ChatPromptTemplate.from_messages([
      "Rules: "
      "1. If the query is unrelated to diabetes or health, respond politely with a short refusal message "
      "and set next_step='end'. "
-     "2. If the query is about diabetes risks, lifestyle, diet, monitoring, or complications (but not heavy symptoms), "
+     "2. If the query is about diabetes risks, lifestyle, diet, monitoring, or complications but not diabetes-symptoms related, "
      "set next_step='consultant'. "
      "3. If the query contains diabetes-related symptoms "
      "(e.g., frequent urination, excessive thirst, sudden weight loss, weakness, visual blurring, etc), answer the query, "
-     "tell the user that you noticed symptoms of diabetes in hs query and ask if he would like to get a diabetes risk prediction. "
-     "If yes, set next_step to 'prediction_offer', else set next_step to'consultant'. "
+     "tell the user that his query contains diabetes-related symptoms, and ask if he would like to get a diabetes risk prediction. "
+     "If yes, set next_step = 'prediction_offer', else set next_step = 'consultant'. "
      "Note: The risk prediction should only be offered once per conversation."),
     ("user", "{question}")
 ])
