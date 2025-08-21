@@ -83,8 +83,8 @@ model = joblib.load(model_path)
 # Feature Schema for Random Forest model
 class PatientFeatures(BaseModel):
     Age: int = Field(..., description="Age of the patient between 20 and 65")
-    Gender: Literal[1, 2] = Field(..., description="1=Male, 2=Female")
-    Polyuria: Literal[0, 1]
+    Gender: Literal[0, 1] = Field(..., description="1 = Male, 0 = Female")
+    Polyuria: Literal[0, 1] = Field(..., description="1 = Yes, 0 = No")
     Polydipsia: Literal[0, 1]
     sudden_weight_loss: Literal[0, 1]
     weakness: Literal[0, 1]
