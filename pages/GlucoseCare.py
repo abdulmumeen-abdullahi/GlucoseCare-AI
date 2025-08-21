@@ -402,16 +402,26 @@ graph = StateGraph(AgentState)
 graph.add_node("router", router_node)
 graph.add_node("feature_collection", feature_collection_node)
 graph.add_node("consultant", consultant_node)
+graph.add_node("prediction_offer", prediction_offer_node)
+graph.add_node("doctor", doctor_node)
 
 # Set Entry point
 graph.set_entry_point("router")
 
 # Add Edge
-graph.add_edge("router", "feature_collection")
+# =========== Possible routes
 graph.add_edge("router", "consultant")
-graph.add_edge("feature_collection", END)
+graph.add_edge("router", "prediction_offer")
+graph.add_edge("router", "feature_collection")
+# =========== Possible Prediction offer routes
+graph.add_edge("prediction_offer", "feature_collection")
+graph.add_edge("prediction_offer", "consultant")
+# =========== After collecting features, go to doctor
+graph.add_edge("feature_collection", "doctor")
+# =========== Doctor runs prediction and sends user back to consultant
+graph.add_edge("doctor", "consultant")
+# =========== Conversations can naturally end after consultant
 graph.add_edge("consultant", END)
-
 # Compile app
 app = graph.compile()
 
