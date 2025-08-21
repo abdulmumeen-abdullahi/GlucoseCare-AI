@@ -106,18 +106,18 @@ model = joblib.load(model_path)
 class PatientFeatures(BaseModel):
     Age: int = Field(..., description="Age of the patient between 20 and 65")
     Gender: Literal[0, 1] = Field(..., description="1 = Male, 0 = Female")
-    Polyuria: Literal[0, 1] = Field(..., description="1 = Yes, 0 = No")
+    Polyuria: Literal[0, 1]
     Polydipsia: Literal[0, 1]
-    sudden_weight_loss: Literal[0, 1]
+    sudden weight loss: Literal[0, 1]
     weakness: Literal[0, 1]
     Polyphagia: Literal[0, 1]
-    Genital_thrush: Literal[0, 1]
-    visual_blurring: Literal[0, 1]
+    Genital thrush: Literal[0, 1]
+    visual blurring: Literal[0, 1]
     Itching: Literal[0, 1]
     Irritability: Literal[0, 1]
-    delayed_healing: Literal[0, 1]
-    partial_paresis: Literal[0, 1]
-    muscle_stiffness: Literal[0, 1]
+    delayed healing: Literal[0, 1]
+    partial paresis: Literal[0, 1]
+    muscle stiffness: Literal[0, 1]
     Alopecia: Literal[0, 1]
     Obesity: Literal[0, 1]
 
@@ -211,26 +211,6 @@ print(f"Model downloaded to: {model_path}")
 
 # Load Early Stage Diabetes model
 model = joblib.load(model_path)
-
-# Feature Schema for Random Forest model
-class PatientFeatures(BaseModel):
-    Age: int = Field(..., description="Age of the patient between 20 and 65")
-    Gender: Literal[1, 2] = Field(..., description="1=Male, 2=Female")
-    Polyuria: Literal[0, 1]
-    Polydipsia: Literal[0, 1]
-    sudden weight loss: Literal[0, 1]
-    weakness: Literal[0, 1]
-    Polyphagia: Literal[0, 1]
-    Genital thrush: Literal[0, 1]
-    visual blurring: Literal[0, 1]
-    Itching: Literal[0, 1]
-    Irritability: Literal[0, 1]
-    delayed healing: Literal[0, 1]
-    partial paresis: Literal[0, 1]
-    muscle stiffness: Literal[0, 1]
-    Alopecia: Literal[0, 1]
-    Obesity: Literal[0, 1]
-
 
 # ==================================      Feature Collection Node      ==================================
 def feature_collection_node(state: AgentState) -> AgentState:
@@ -423,9 +403,7 @@ graph.add_edge("consultant", END)
 # Compile app
 app = graph.compile()
 
-# Minimal Turn Runner
-runner = MinimalTurnRunner(app)
-
+# Run helper
 def run_turn(state: AgentState, user_message: str) -> AgentState:
     # Put the new user input into state
     state["input"] = user_message
