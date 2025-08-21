@@ -2,7 +2,7 @@
 import os
 import uuid
 import sqlite3
-from typing import Literal
+from typing import Dict, Any, List, Tuple, Literal
 import pandas as pd
 import joblib
 import streamlit as st
@@ -51,18 +51,40 @@ memory = SQLiteMemory("memory.db")
 
 # Define Agent
 class AgentState(dict):
-    def __init__(self, session_id=None, *args, **kwargs):
+    def __init__(self, session_id: str = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.session_id = session_id or str(uuid.uuid4())
-        self["history"] = memory.get_history(self.session_id)
 
-    def add_to_history(self, role, content):
+        # Initialize safe defaults
+        self.setdefault("history", memory.get_history(self.session_id) or [])
+        self.setdefault("features", {})       # patient features
+        self.setdefault("output", None)       # last system/assistant output
+        self.setdefault("next_step", None)    # routing control
+        self.setdefault("metadata", {})       # misc info (timestamps, retries, etc.)
+
+    def add_to_history(self, role: str, content: str):
+        # Adds a message to both persistent memory and in-session history.
         memory.add_message(self.session_id, role, content)
         if "history" not in self:
             self["history"] = []
         self["history"].append((role, content))
 
-# Initialize Gemini LLM
+    def get_latest_user_input(self) -> str:
+        # Retrieve the latest user input from history if available.
+        for role, msg in reversed(self["history"]):
+            if role == "user":
+                return msg
+        return ""
+
+    def get(self, key: str, default: Any = None) -> Any:
+        # Safe dictionary get with defaults for missing keys.
+        return super().get(key, default)
+
+    def update_features(self, new_features: Dict[str, Any]):
+        # Update patient features incrementally.
+        self["features"].update(new_features)
+
+# ==========================================================================         Initialize Gemini LLM
 chatGemini = ChatGoogleGenerativeAI(
     model = "gemini-1.5-flash",
     temperature = 0.3,
@@ -337,9 +359,10 @@ def doctor_node(state: AgentState) -> AgentState:
     advice = chatGemini.invoke(preventive_prompt).content
     final_output = base_message + "\n\nPreventive Advice:\n" + advice
 
-    state["output"] = final_output
-    state.add_to_history("assistant", final_output)
-    state["features"] = features
+    except ValidationError as e:
+    msg = f"Some details are missing or invalid: {e}. Please restart the intake."
+    state["output"] = msg
+    state.add_to_history("assistant", msg)
     state["next_step"] = "consultant"
     return state
 
