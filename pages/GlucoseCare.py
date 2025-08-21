@@ -84,6 +84,14 @@ class AgentState(dict):
         # Update patient features incrementally.
         self["features"].update(new_features)
 
+# Safe text extractor for AI Messsage Object
+def safe_text(msg):
+    if msg is None:
+        return ""
+    if hasattr(msg, "content"):   # AIMessage
+        return msg.content
+    return str(msg)
+
 # ==========================================================================         Initialize Gemini LLM
 chatGemini = ChatGoogleGenerativeAI(
     model = "gemini-1.5-flash",
@@ -167,10 +175,9 @@ def consultant_node(state: AgentState) -> AgentState:
     response = chatGemini.invoke(consultant_prompt.format(question=query))
 
     # Extract plain string content from AIMessage object
-    response_text = response.content if hasattr(response, "content") else str(response)
-
-    state.add_to_history("assistant", response_text)
-    state["output"] = response_text
+    response = safe_text(response)
+    state.add_to_history("assistant", response)
+    state["output"] = response
     
     return state
 
@@ -186,7 +193,8 @@ def prediction_offer_node(state: AgentState) -> AgentState:
          "Answer only 'yes' or 'no'."),
         ("user", reply)
     ])
-    decision = chatGemini.invoke(intent_prompt).content.strip().lower()
+    raw_decision = chatGemini.invoke(intent_prompt)
+    decision = safe_text(decision_raw).strip().lower()
 
     # Get existing patient features
     features = state.get("features") or {}
@@ -209,6 +217,7 @@ def prediction_offer_node(state: AgentState) -> AgentState:
 
     # Save assistant message in memory
     state.add_to_history("assistant", state["output"])
+
     return state
 
 # ==================================      Feature Collection Node      ==================================
@@ -342,7 +351,8 @@ def doctor_node(state: AgentState) -> AgentState:
                      f"Give preventive advice.")
         ])
 
-        advice = chatGemini.invoke(preventive_prompt).content
+        advice_raw = chatGemini.invoke(preventive_prompt)
+        advice = safe_text(advice_raw)
         final_output = base_message + "\n\nPreventive Advice:\n" + advice
 
         state["output"] = final_output
@@ -366,16 +376,26 @@ def router_node(state: AgentState) -> AgentState:
     if state.get("prediction_offered", False):
         decision = RouteDecision(next_step="consultant")
     else:
-        decision = chatGemini.with_structured_output(RouteDecision).invoke(
+        decision_raw = chatGemini.with_structured_output(RouteDecision).invoke(
             router_prompt.format(question=query)
         )
+        
+        # if structured_output gives BaseModel, it's safe; else fallback to text
+        if isinstance(decision_raw, RouteDecision):
+            decision = decision_raw
+        else:
+            # fallback route if parsing fails
+            decision = RouteDecision(next_step="consultant")
 
     # Store next step in state
     state["next_step"] = decision.next_step
 
     # Handle refusal inline if next_step == "end"
     if decision.next_step == "end":
-        refusal = "I'm here to help with diabetes-related questions only. Please ask me about diabetes symptoms, risks, or lifestyle. Thanks."
+        refusal = (
+            "I'm here to help with diabetes-related questions only. "
+            "Please ask me about diabetes symptoms, risks, or lifestyle. Thanks."
+        )
         state.add_to_history("assistant", refusal)
         state["output"] = refusal
 
