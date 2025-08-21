@@ -144,11 +144,12 @@ router_prompt = ChatPromptTemplate.from_messages([
     ("system",
      "You are a router that decides whether a user query is diabetes-related. "
      "Rules: "
-     "1. If the query is unrelated to diabetes or health, respond politely with a short refusal message "
+     "1. If a user input greetings or compliment, respond and ask how you can help him politely. "
+     "2. If the query is unrelated to diabetes or health, respond politely with a short refusal message "
      "and set next_step='end'. "
-     "2. If the query is about diabetes risks, lifestyle, diet, monitoring, or complications but not diabetes-symptoms related, "
+     "3. If the query is about diabetes risks, lifestyle, diet, monitoring, or complications but not diabetes-symptoms related, "
      "set next_step='consultant'. "
-     "3. If the query contains diabetes-related symptoms "
+     "4. If the query contains diabetes-related symptoms "
      "(e.g., frequent urination, excessive thirst, sudden weight loss, weakness, visual blurring, etc), answer the query, "
      "tell the user that his query contains diabetes-related symptoms, and ask if he would like to get a diabetes risk prediction. "
      "If he reply yes, set next_step = 'prediction_offer', else set next_step = 'consultant'. "
@@ -454,3 +455,35 @@ def run_turn(state: AgentState, user_message: str) -> AgentState:
 
     # Read the assistant output
     return final_state
+
+# =============================   Streamlit Page for Interactive Agent   =============================
+# Initialize session state for agent
+if "agent_state" not in st.session_state:
+    st.session_state.agent_state = AgentState(session_id="user_session_1")
+
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = st.session_state.agent_state.get("history", [])
+
+# Display conversation history
+for role, msg in st.session_state.chat_history:
+    with st.chat_message(role):
+        st.markdown(msg)
+
+# User input box (Streamlit Chat Input)
+if user_input := st.chat_input("Ask me about diabetes symptoms, risks, or lifestyle..."):
+    # Add user input to history and run graph turn
+    with st.chat_message("user"):
+        st.markdown(user_input)
+
+    st.session_state.agent_state["input"] = user_input
+    new_state = run_turn(st.session_state.agent_state, user_input)
+
+    # Extract assistant output
+    assistant_reply = new_state.get("output", "")
+    if assistant_reply:
+        with st.chat_message("assistant"):
+            st.markdown(assistant_reply)
+
+    # Update persistent session state
+    st.session_state.agent_state = new_state
+    st.session_state.chat_history = new_state.get("history", [])
