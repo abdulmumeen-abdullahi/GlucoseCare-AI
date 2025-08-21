@@ -159,8 +159,12 @@ consultant_prompt = ChatPromptTemplate.from_messages([
 def consultant_node(state: AgentState) -> AgentState:
     query = state.get("input", "")
     response = chatGemini.invoke(consultant_prompt.format(question=query))
-    state.add_to_history("assistant", response)
-    state["output"] = response
+
+    # Extract plain string content from AIMessage object
+    response_text = response.content if hasattr(response, "content") else str(response)
+
+    state.add_to_history("assistant", response_text)
+    state["output"] = response_text
     
     return state
 
