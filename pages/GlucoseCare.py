@@ -112,11 +112,10 @@ router_prompt = ChatPromptTemplate.from_messages([
      "and set next_step='end'. "
      "2. If the query is about diabetes risks, lifestyle, diet, monitoring, or complications (but not heavy symptoms), "
      "set next_step='consultant'. "
-     "3. If the query contains multiple or strong diabetes-related symptoms "
-     "(e.g., frequent urination, excessive thirst, sudden weight loss, weakness, visual blurring), "
-     "then offer the user: 'I noticed your question involves symptoms of diabetes. "
-     "Would you like me to also provide a diabetes risk prediction?' "
-     "If yes → next_step='prediction_offer', else → next_step='consultant'. "
+     "3. If the query contains diabetes-related symptoms "
+     "(e.g., frequent urination, excessive thirst, sudden weight loss, weakness, visual blurring, etc), answer the query, "
+     "tell the user that you noticed symptoms of diabetes in hs query and ask if he would like to get a diabetes risk prediction. "
+     "If yes, set next_step to 'prediction_offer', else set next_step to'consultant'. "
      "Note: The risk prediction should only be offered once per conversation."),
     ("user", "{question}")
 ])
@@ -137,24 +136,10 @@ consultant_prompt = ChatPromptTemplate.from_messages([
 
 def consultant_node(state: AgentState) -> AgentState:
     query = state.get("input", "")
-    state.add_to_history("user", query)
-
-    # Consultant Response
-    answer = chatGemini.invoke(consultant_prompt.format(question=query))
-    response = answer.content
-
-    # If prediction offer, follow-up
-    if state.get("offer_prediction", False):
-        response += "\n\nI noticed you mentioned possible diabetes symptoms. " \
-                    "Would you like me to run a diabetes risk prediction model for you? (Yes/No)"
-        state["next_step"] = "prediction_offer"
-    else:
-        state["next_step"] = None
-
-    state["output"] = response
-
-    # Persist assistant response
+    response = chatGemini.invoke(consultant_prompt.format(question=query))
     state.add_to_history("assistant", response)
+    state["output"] = response
+    
     return state
 
 # ==================================      Prediction Offer Node      ==================================
