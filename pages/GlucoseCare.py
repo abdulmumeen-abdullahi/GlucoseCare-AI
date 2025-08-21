@@ -196,37 +196,41 @@ class PatientFeatures(BaseModel):
     Gender: Literal[1, 2] = Field(..., description="1=Male, 2=Female")
     Polyuria: Literal[0, 1]
     Polydipsia: Literal[0, 1]
-    sudden_weight_loss: Literal[0, 1]
+    sudden weight loss: Literal[0, 1]
     weakness: Literal[0, 1]
     Polyphagia: Literal[0, 1]
-    Genital_thrush: Literal[0, 1]
-    visual_blurring: Literal[0, 1]
+    Genital thrush: Literal[0, 1]
+    visual blurring: Literal[0, 1]
     Itching: Literal[0, 1]
     Irritability: Literal[0, 1]
-    delayed_healing: Literal[0, 1]
-    partial_paresis: Literal[0, 1]
-    muscle_stiffness: Literal[0, 1]
+    delayed healing: Literal[0, 1]
+    partial paresis: Literal[0, 1]
+    muscle stiffness: Literal[0, 1]
     Alopecia: Literal[0, 1]
     Obesity: Literal[0, 1]
 
 
 # ==================================      Feature Collection Node      ==================================
 def feature_collection_node(state: AgentState) -> AgentState:
+    # Ensure features container exists
+    state.setdefault("features", {})
+
+    # Ordered questions
     questions = [
         ("Age", "What is your age? (Enter a number between 20–65)"),
-        ("Gender", "Are you male or female?"),
+        ("Gender", "Are you male or female? (Type 'male' or 'female')"),
         ("Polyuria", "Do you often pass large amounts of urine (Polyuria)? (Yes/No)"),
         ("Polydipsia", "Do you feel very thirsty often (Polydipsia)? (Yes/No)"),
-        ("sudden_weight_loss", "Have you experienced sudden weight loss? (Yes/No)"),
+        ("sudden weight loss", "Have you experienced sudden weight loss? (Yes/No)"),
         ("weakness", "Do you often feel weak? (Yes/No)"),
         ("Polyphagia", "Do you feel excessive hunger (Polyphagia)? (Yes/No)"),
-        ("Genital_thrush", "Have you had genital thrush? (Yes/No)"),
-        ("visual_blurring", "Do you experience blurred vision (visual blurring)? (Yes/No)"),
+        ("Genital thrush", "Have you had genital thrush? (Yes/No)"),
+        ("visual blurring", "Do you experience blurred vision (visual blurring)? (Yes/No)"),
         ("Itching", "Do you often feel itching? (Yes/No)"),
         ("Irritability", "Do you experience irritability? (Yes/No)"),
-        ("delayed_healing", "Do your wounds take longer to heal (delayed healing)? (Yes/No)"),
-        ("partial_paresis", "Do you have partial muscle weakness (paresis)? (Yes/No)"),
-        ("muscle_stiffness", "Do you experience muscle stiffness? (Yes/No)"),
+        ("delayed healing", "Do your wounds take longer to heal (delayed healing)? (Yes/No)"),
+        ("partial paresis", "Do you have partial muscle weakness (paresis)? (Yes/No)"),
+        ("muscle stiffness", "Do you experience muscle stiffness? (Yes/No)"),
         ("Alopecia", "Do you have hair loss (Alopecia)? (Yes/No)"),
         ("Obesity", "Are you obese or overweight? (Yes/No)")
     ]
@@ -234,37 +238,67 @@ def feature_collection_node(state: AgentState) -> AgentState:
     idx = state.get("question_index", 0)
     user_input = state.get("input", "").strip()
 
-    # Process the previous answer
+    # Handle previous answer
     if idx > 0 and user_input:
         field, _ = questions[idx - 1]
-        answer = user_input.lower()
+        ans = user_input.lower().strip()
 
-        # Map answer → value
-        if answer in ["yes", "1", "y"]:
-            value = 1
-        elif answer in ["no", "0", "n"]:
-            value = 0
-        elif answer in ["male", "m"]:
-            value = 1
-        elif answer in ["female", "f"]:
-            value = 2
-        else:
-            try:
-                value = int(answer)
-            except:
-                value = answer
+        def map_answer(field_name: str, text: str):
+            if field_name == "Age":
+                try:
+                    age = int(text)
+                    if 20 <= age <= 65:
+                        return age, None
+                    return None, "Please enter a valid age between 20 and 65."
+                except:
+                    return None, "Please enter a whole number for age (20–65)."
 
+            if field_name == "Gender":
+                if text in ["male", "m", "1"]:
+                    return 1, None  # male = 1
+                if text in ["female", "f", "0", "2"]:
+                    return 0, None  # female = 0
+                return None, "Please type 'male' or 'female'."
+
+            # Binary symptom fields
+            if text in ["yes", "y", "1"]:
+                return 1, None
+            if text in ["no", "n", "0"]:
+                return 0, None
+
+            return None, f"Please answer 'Yes' or 'No' for {field_name}."
+
+        value, err = map_answer(field, ans)
+        if err:
+            state["output"] = err
+            state.add_to_history("assistant", err)
+            state["next_step"] = "feature_collection"
+            return state
+
+        # Save mapped value
         state["features"][field] = value
         state.add_to_history("user", f"{field}: {user_input}")
 
-    # If done, send to doctor
+    # Completion Check
     if idx >= len(questions):
-        state["output"] = "Thanks, I’ve collected your details. Running your risk prediction now..."
-        state.add_to_history("assistant", state["output"])
-        state["next_step"] = "doctor"
-        return state
+        try:
+            # Validate against PatientFeatures schema
+            PatientFeatures(**state["features"])
+            msg = "Thanks, I’ve collected your details. Running your risk prediction now..."
+            state["output"] = msg
+            state.add_to_history("assistant", msg)
+            state["next_step"] = "doctor"
+            state["question_index"] = 0  # reset for future intake
+            return state
+        except Exception as e:
+            # In case schema validation fails (e.g. missing field)
+            err = f"Some information is missing or invalid: {str(e)}"
+            state["output"] = err
+            state.add_to_history("assistant", err)
+            state["next_step"] = "feature_collection"
+            return state
 
-    # Otherwise, ask next question
+    # Ask Next Question
     field, q_text = questions[idx]
     state["output"] = q_text
     state.add_to_history("assistant", q_text)
