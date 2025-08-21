@@ -394,26 +394,44 @@ def router_node(state: AgentState) -> AgentState:
 
     return state
 
+# ==================================      Normalize next_step to a graph target or END      ==================================
+def route_from_state(state) -> Literal["consultant", "prediction_offer", "feature_collection", "doctor", "end"]:
+    step = state.get("next_step")
+    # Defensive normalization
+    if step in {"consultant", "prediction_offer", "feature_collection", "doctor", "end"}:
+        return step
+    # Treat None/unknown as end
+    return "end"
+
 # ==================================      Build LangGraph      ==================================
 graph = StateGraph(AgentState)
 
+# Add node
 graph.add_node("router", router_node)
-graph.add_node("consultant", consultant_node)
 graph.add_node("feature_collection", feature_collection_node)
-graph.add_node("doctor", doctor_node)
+graph.add_node("consultant", consultant_node)
 
-graph.add_conditional_edges(
-    "router",
-    lambda state, _: state["next_step"],
-    {
-        "feature_collection": "feature_collection",
-        "consultant": "consultant"
-    }
-)
-
-graph.add_edge("feature_collection", "doctor")
-
-# Set entry point
+# Set Entry point
 graph.set_entry_point("router")
 
+# Add Edge
+graph.add_edge("router", "feature_collection")
+graph.add_edge("router", "consultant")
+graph.add_edge("feature_collection", END)
+graph.add_edge("consultant", END)
+
+# Compile app
 app = graph.compile()
+
+# Minimal Turn Runner
+runner = MinimalTurnRunner(app)
+
+def run_turn(state: AgentState, user_message: str) -> AgentState:
+    # Put the new user input into state
+    state["input"] = user_message
+
+    # Execute the graph from the entry node until END
+    final_state = app.invoke(state)
+
+    # Read the assistant output
+    return final_state
