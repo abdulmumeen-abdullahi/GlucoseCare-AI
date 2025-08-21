@@ -108,18 +108,24 @@ class PatientFeatures(BaseModel):
     Gender: Literal[0, 1] = Field(..., description="1 = Male, 0 = Female")
     Polyuria: Literal[0, 1]
     Polydipsia: Literal[0, 1]
-    sudden weight loss: Literal[0, 1]
+    sudden_weight_loss: Literal[0, 1] = Field(..., alias="sudden weight loss")
     weakness: Literal[0, 1]
     Polyphagia: Literal[0, 1]
-    Genital thrush: Literal[0, 1]
-    visual blurring: Literal[0, 1]
+    Genital_thrush: Literal[0, 1] = Field(..., alias="Genital thrush")
+    visual_blurring: Literal[0, 1] = Field(..., alias="visual blurring")
     Itching: Literal[0, 1]
     Irritability: Literal[0, 1]
-    delayed healing: Literal[0, 1]
-    partial paresis: Literal[0, 1]
-    muscle stiffness: Literal[0, 1]
+    delayed_healing: Literal[0, 1] = Field(..., alias="delayed healing")
+    partial_paresis: Literal[0, 1] = Field(..., alias="partial paresis")
+    muscle_stiffness: Literal[0, 1] = Field(..., alias="muscle stiffness")
     Alopecia: Literal[0, 1]
     Obesity: Literal[0, 1]
+
+    # Model config
+    model_config = {
+        "validate_by_name": True,
+        "populate_by_name": True  # allows input by field name too
+    }
 
 # Router decision schema
 class RouteDecision(BaseModel):
@@ -204,17 +210,6 @@ def prediction_offer_node(state: AgentState) -> AgentState:
     # Save assistant message in memory
     state.add_to_history("assistant", state["output"])
     return state
-    
-===================================================================================
-# Download Model
-REPO_ID = "VisionaryQuant/Early-Stage-Diabetes-Prediction-Model"
-MODEL_FILENAME = "early_stage_diabetes_best_model.pkl"
-
-model_path = hf_hub_download(repo_id=REPO_ID, filename=MODEL_FILENAME)
-print(f"Model downloaded to: {model_path}")
-
-# Load Early Stage Diabetes model
-model = joblib.load(model_path)
 
 # ==================================      Feature Collection Node      ==================================
 def feature_collection_node(state: AgentState) -> AgentState:
