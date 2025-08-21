@@ -143,7 +143,7 @@ router_prompt = ChatPromptTemplate.from_messages([
      "3. If the query contains diabetes-related symptoms "
      "(e.g., frequent urination, excessive thirst, sudden weight loss, weakness, visual blurring, etc), answer the query, "
      "tell the user that his query contains diabetes-related symptoms, and ask if he would like to get a diabetes risk prediction. "
-     "If yes, set next_step = 'prediction_offer', else set next_step = 'consultant'. "
+     "If he reply yes, set next_step = 'prediction_offer', else set next_step = 'consultant'. "
      "Note: The risk prediction should only be offered once per conversation."),
     ("user", "{question}")
 ])
