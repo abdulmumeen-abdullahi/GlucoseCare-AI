@@ -141,5 +141,3 @@ GlucoseCare-AI/
 ## Disclaimer
 
 GlucoseCare AI is **not a medical device**. It is a **research and educational project** intended to demonstrate AI agent engineering. Always consult a **qualified healthcare provider** for medical advice, diagnosis, or treatment.
-
----
