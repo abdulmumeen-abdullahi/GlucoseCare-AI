@@ -7,24 +7,24 @@
 
 ## Overview
 
-GlucoseCare AI is an intelligent LangGraph-powered agent designed to consult, collect patient symptoms, and run an early-stage diabetes risk prediction using a machine learning model. It integrates conversational AI (LLMs) with structured stateful flows to provide personalized advice aligned with ADA, IDF, and WHO guidelines**.
+GlucoseCare AI is an intelligent LangGraph-powered agent designed to consult, collect patient symptoms, and run an early-stage diabetes risk prediction using a Random Forest Classifier machine learning model. It integrates conversational AI (LLMs) with structured stateful flows to provide personalized advice aligned with ADA, IDF, and WHO guidelines**.
 
 This project demonstrates:
 
-* ✅ **Hybrid reasoning:** LLM + predictive ML model.
-* ✅ **Structured state management:** Built with `LangGraph` and `MemorySaver`.
-* ✅ **Medical use-case compliance:** Always includes disclaimers.
-* ✅ **Modern agentic stack:** Google Gemini, Groq (LLaMA 3), Hugging Face Hub, Chainlit UI.
+* **Hybrid reasoning:** LLM + predictive ML model.
+* **Structured state management:** Built with `LangGraph` and `MemorySaver`.
+* **Medical use-case compliance:** Always includes disclaimers.
+* **Modern agentic stack:** Google Gemini, Groq (LLaMA 3), Hugging Face Hub, Chainlit UI.
 
-GlucoseCare AI is a **portfolio project** showcasing applied AI engineering in healthcare.
+GlucoseCare AI is a portfolio project showcasing applied AI engineering in healthcare.
 
 ---
 
-## ⚙️ Features
+## Features
 
 * **Intent Classification**: Routes user queries (symptoms, lifestyle, greetings, prediction requests).
 * **Feature Collection**: Guided questionnaire (age, gender, polyuria, polydipsia, etc.).
-* **ML Prediction**: Runs a **pre-trained early-stage diabetes model** hosted on Hugging Face.
+* **ML Prediction**: Runs a pre-trained Random Forest early-stage diabetes model hosted on Hugging Face.
 * **LLM Prevention Advice**: Provides personalized, concise prevention tips.
 * **Memory & State Graph**: Conversation flow managed by LangGraph with checkpointing.
 * **Fallback LLM Calls**: Automatically retries between Groq (LLaMA 3) and Gemini.
@@ -32,7 +32,7 @@ GlucoseCare AI is a **portfolio project** showcasing applied AI engineering in h
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 User → Chainlit Chat UI → LangGraph State Machine
@@ -53,12 +53,12 @@ User → Chainlit Chat UI → LangGraph State Machine
 
 ---
 
-## 🚀 Getting Started
+## Getting Started with GlucoseCare AI Agent
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/<your-username>/GlucoseCare-AI.git
+git clone https://github.com/abdulmumeen-abdullahi/GlucoseCare-AI.git
 cd GlucoseCare-AI
 ```
 
@@ -95,7 +95,7 @@ Open your browser at `http://localhost:8000`.
 
 ---
 
-## 🧪 Example Usage
+## Example Usage
 
 **User:** "I feel constant thirst and urinate a lot."
 **Agent:**
@@ -126,7 +126,7 @@ Preventive Advice: Maintain hydration, monitor blood sugar, and seek medical con
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 GlucoseCare-AI/
@@ -138,15 +138,8 @@ GlucoseCare-AI/
 
 ---
 
-## ⚠️ Disclaimer
+## Disclaimer
 
 GlucoseCare AI is **not a medical device**. It is a **research and educational project** intended to demonstrate AI agent engineering. Always consult a **qualified healthcare provider** for medical advice, diagnosis, or treatment.
 
 ---
-
-## 🌟 Portfolio Value
-
-* Demonstrates **applied AI agent design** using **LangGraph**.
-* Combines **ML prediction** with **LLM-based consultation**.
-* Shows ability to **deploy AI-powered assistants** in healthcare.
-* Highlights **structured state management** vs. free-form chatbots.
