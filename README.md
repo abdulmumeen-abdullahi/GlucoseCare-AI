@@ -93,38 +93,9 @@ chainlit run GlucoseCare.py -w
 
 Open your browser at `http://localhost:8000`.
 
----
+<img width="1366" height="724" alt="GlucoseCare Agent UI" src="https://github.com/user-attachments/assets/6eb81cba-1a3d-4f4a-8416-91fe6441585b" />
 
-## Example Usage
-
-**User:** "I feel constant thirst and urinate a lot."
-**Agent:**
-
-```
-I noticed you mentioned health-related issues.  
-Would you like me to run a quick diabetes risk check? (Yes/No)
-```
-
-**User:** "Yes"
-**Agent:**
-
-```
-Great! Let’s begin with some quick questions.  
-What is your age?
-```
-
-... → After answering the questionnaire →
-
-**Agent:**
-
-```
-Prediction: Diabetic (confidence 0.87).  
-Note: Consult a medical practitioner for better diagnosis.  
-
-Preventive Advice: Maintain hydration, monitor blood sugar, and seek medical consultation promptly.
-```
-
----
+ <p align="center"><b>Figure</b>: A screenshot of GlucoseCare AI Chainlit UI.</p>
 
 ## Project Structure
 
