@@ -7,7 +7,7 @@
 
 ## Overview
 
-GlucoseCare AI is an intelligent LangGraph-powered agent designed to consult, collect patient symptoms, and run an early-stage diabetes risk prediction using a Random Forest Classifier machine learning model. It integrates conversational AI (LLMs) with structured stateful flows to provide personalized advice aligned with ADA, IDF, and WHO guidelines**.
+GlucoseCare AI is an intelligent LangGraph-powered agent designed to consult, collect patient symptoms, and run an early-stage diabetes risk prediction using a Random Forest Classifier machine learning model. It integrates conversational AI (LLMs) with structured stateful flows to provide personalized advice aligned with ADA, IDF, and WHO guidelines.
 
 This project demonstrates:
 
