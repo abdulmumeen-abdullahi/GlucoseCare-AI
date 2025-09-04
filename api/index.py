@@ -1,20 +1,20 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from glucosecare.agent import app, ensure_state, memory
+from glucosecare.agent import app as agent_app, ensure_state, memory
 
-app_api = FastAPI()
+app = FastAPI()  # not app_api anymore
 
 class UserMessage(BaseModel):
     message: str
     thread_id: str | None = None
 
-@app_api.post("/chat")
+@app.post("/chat")
 def chat(payload: UserMessage):
     state = ensure_state({})
     state["input"] = payload.message
     thread_id = payload.thread_id or "default"
 
-    new_state = app.invoke(
+    new_state = agent_app.invoke(
         state,
         config={"configurable": {"thread_id": thread_id}},
         checkpointer=memory
