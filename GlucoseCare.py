@@ -386,7 +386,7 @@ app = graph.compile(checkpointer=memory)
 
 # =============================            Chainlit Integration            =============================
 
-llm_limiter = AsyncLimiter(3, 1)
+"""llm_limiter = AsyncLimiter(3, 1)
 
 @cl.on_chat_start
 async def start_chat():
@@ -421,4 +421,4 @@ async def handle_message(message: cl.Message):
             await cl.Message(content=new_state.get("output", "No response.")).send()
     except Exception:
         print(traceback.format_exc())
-        await cl.Message(content="Something went wrong...").send()
+        await cl.Message(content="Something went wrong...").send()""""
