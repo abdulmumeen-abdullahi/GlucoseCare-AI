@@ -9,3 +9,10 @@ plotly==5.24.1
 google-ai-generativelanguage
 google-generativeai
 langchain-google-genai
+fastapi
+uvicorn
+scikit-learn
+python-dotenv
+langchain
+langchain-groq
+aiolimiter
