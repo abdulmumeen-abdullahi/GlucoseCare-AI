@@ -4,9 +4,6 @@
       "runtime": "python3.11"
     }
   },
-  "builds": [
-    { "src": "frontend/next.config.js", "use": "@vercel/next" }
-  ],
   "routes": [
     { "src": "/api/(.*)", "dest": "api/index.py" },
     { "src": "/(.*)", "dest": "/frontend/$1" }
