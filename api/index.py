@@ -1,23 +1,28 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
-from GlucoseCare import app as agent_app, ensure_state, memory
+# api/index.py
+from http.server import BaseHTTPRequestHandler
+import json
+import sys
+import os
 
-app = FastAPI()  # not app_api anymore
+# Make sure Python can find GlucoseCare.py
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-class UserMessage(BaseModel):
-    message: str
-    thread_id: str | None = None
+from GlucoseCare import app, ensure_state, memory
 
-@app.post("/chat")
-def chat(payload: UserMessage):
-    state = ensure_state({})
-    state["input"] = payload.message
-    thread_id = payload.thread_id or "default"
+class handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        content_length = int(self.headers['Content-Length'])
+        body = self.rfile.read(content_length)
+        data = json.loads(body)
 
-    new_state = agent_app.invoke(
-        state,
-        config={"configurable": {"thread_id": thread_id}},
-        checkpointer=memory
-    )
-    return {"response": new_state.get("output", "No response.")}
+        user_input = data.get("message", "")
+        state = ensure_state({})
+        state["input"] = user_input
 
+        new_state = app.invoke(state, config={"configurable": {"thread_id": "web"}}, checkpointer=memory)
+        response_text = new_state.get("output", "⚠️ No response")
+
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps({"reply": response_text}).encode())
