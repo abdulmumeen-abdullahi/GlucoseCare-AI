@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from glucosecare.agent import app as agent_app, ensure_state, memory
+from GlucoseCare import app as agent_app, ensure_state, memory
 
 app = FastAPI()  # not app_api anymore
 
@@ -20,3 +20,4 @@ def chat(payload: UserMessage):
         checkpointer=memory
     )
     return {"response": new_state.get("output", "No response.")}
+
