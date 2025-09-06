@@ -1,5 +1,7 @@
 # GlucoseCare AI Agent 🤖
 
+==> **Test the app** on [render](https://glucosecare-ai-agent.onrender.com)
+
 **Early Diabetes Risk Consultant Agent**
 *AI-powered assistant for early-stage diabetes awareness, prevention, and personalized risk assessment.*
 
@@ -28,7 +30,7 @@ GlucoseCare AI is a portfolio project showcasing applied AI engineering in healt
 * **LLM Prevention Advice**: Provides personalized, concise prevention tips.
 * **Memory & State Graph**: Conversation flow managed by LangGraph with checkpointing.
 * **Fallback LLM Calls**: Automatically retries between Groq (LLaMA 3) and Gemini.
-* **Interactive UI**: Chainlit chat interface with session reset.
+* **Interactive UI**: Chainlit chat interface with session reset deployed on Render.
 
 ---
 
