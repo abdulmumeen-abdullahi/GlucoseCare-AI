@@ -17,8 +17,6 @@ python-dotenv
 langchain
 langchain-groq
 aiolimiter
-
-
-
+chainlit==2.7.1.1
 
 
