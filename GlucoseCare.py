@@ -388,6 +388,9 @@ app = graph.compile(checkpointer=memory)
 
 llm_limiter = AsyncLimiter(3, 1)
 
+# Define Agent name
+cl.config.project_name = "GlucoseCare AI"
+
 @cl.on_chat_start
 async def start_chat():
     # Create a unique thread_id for this session
