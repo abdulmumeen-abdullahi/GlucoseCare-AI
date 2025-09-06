@@ -1,3 +1,4 @@
+python==3.11.9
 pandas==2.2.2
 numpy==1.26.4
 joblib==1.5.1
@@ -16,3 +17,4 @@ python-dotenv
 langchain
 langchain-groq
 aiolimiter
+
