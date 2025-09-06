@@ -81,7 +81,7 @@ def call_llm_with_fallback(messages, prefer="groq") -> str:
                 return safe_text(chatGroq.invoke(messages))
             return safe_text(chatGemini.invoke(messages))
         except Exception:
-            return "⚠️ I couldn’t process that."
+            return "I couldn’t process that."
 
 # =============================            Dabetes Model & Schema            =============================
 # HuggingFace Details
@@ -176,7 +176,7 @@ def router_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
     elif "greeting" in intent:
         state["output"] = (
-            "👋 Hello! I'm **GlucoseCare AI**.\n"
+            "Hello! I'm **GlucoseCare AI**.\n"
             "I can answer your questions about diabetes, symptoms, or run a quick risk check."
         )
         state["next_step"] = "consultant"
@@ -386,7 +386,7 @@ app = graph.compile(checkpointer=memory)
 
 # =============================            Chainlit Integration            =============================
 
-"""llm_limiter = AsyncLimiter(3, 1)
+llm_limiter = AsyncLimiter(3, 1)
 
 @cl.on_chat_start
 async def start_chat():
@@ -395,7 +395,7 @@ async def start_chat():
     cl.user_session.set("thread_id", thread_id)
     cl.user_session.set("agent_state", ensure_state({}))
     await cl.Message(
-        content="""👋 Hello! I'm **GlucoseCare AI**
+        content="""Hello! I'm **GlucoseCare AI**
 Ask me about diabetes symptoms, lifestyle, or risks."""
     ).send()
 
@@ -403,7 +403,7 @@ Ask me about diabetes symptoms, lifestyle, or risks."""
 async def handle_message(message: cl.Message):
     if message.content.lower().strip() in ["reset", "/reset", "restart"]:
         cl.user_session.set("agent_state", ensure_state({}))
-        await cl.Message(content="🔄 Session reset. You can start again.").send()
+        await cl.Message(content="Session reset. You can start again.").send()
         return
 
     state = cl.user_session.get("agent_state") or ensure_state({})
@@ -421,4 +421,4 @@ async def handle_message(message: cl.Message):
             await cl.Message(content=new_state.get("output", "No response.")).send()
     except Exception:
         print(traceback.format_exc())
-        await cl.Message(content="Something went wrong...").send()""""
+        await cl.Message(content="Something went wrong...").send()
