@@ -1,7 +1,5 @@
 # GlucoseCare AI Agent 🤖
 
-==> **Test the app** on [render](https://glucosecare-ai-agent.onrender.com)
-
 **Early Diabetes Risk Consultant Agent**
 *AI-powered assistant for early-stage diabetes awareness, prevention, and personalized risk assessment.*
 
