@@ -10,7 +10,7 @@ import chainlit as cl
 from dotenv import load_dotenv, find_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_groq import ChatGroq
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from sklearn.preprocessing import LabelEncoder
 from langgraph.graph import StateGraph, END
 from huggingface_hub import hf_hub_download
@@ -65,23 +65,19 @@ def safe_query(state: Dict[str, Any]) -> str:
 # =============================            LLMs            =============================
 # Define LLMs
 chatGemini = ChatGoogleGenerativeAI(
-    model="gemini-1.5-flash", temperature=0.3, google_api_key=GOOGLE_API_KEY
+    model="gemini-3.8-flash", temperature=0.3, google_api_key=GOOGLE_API_KEY
 )
-chatGroq = ChatGroq(model="llama3-8b-8192", groq_api_key=GROQ_API_KEY)
+chatGroq = ChatGroq(model="openai/gpt-oss-20b", groq_api_key=GROQ_API_KEY)
 
 # Set fallback
 def call_llm_with_fallback(messages, prefer="groq") -> str:
-    try:
-        if prefer == "gemini":
-            return safe_text(chatGemini.invoke(messages))
-        return safe_text(chatGroq.invoke(messages))
-    except Exception:
+    primary, secondary = (chatGemini, chatGroq) if prefer == "gemini" else (chatGroq, chatGemini)
+    for llm in (primary, secondary):
         try:
-            if prefer == "gemini":
-                return safe_text(chatGroq.invoke(messages))
-            return safe_text(chatGemini.invoke(messages))
-        except Exception:
-            return "I couldn’t process that."
+            return safe_text(llm.invoke(messages))
+        except Exception as e:
+            print(f"[LLM ERROR] {type(llm).__name__}: {e}")
+    return "I couldn't process that."
 
 # =============================            Dabetes Model & Schema            =============================
 # HuggingFace Details
@@ -415,10 +411,9 @@ async def handle_message(message: cl.Message):
         async with llm_limiter:
             # Use memory with thread_id
             thread_id = cl.user_session.get("thread_id")
-            new_state = app.invoke(
+            new_state = await app.ainvoke(
                 state,
                 config={"configurable": {"thread_id": thread_id}},
-                checkpointer=memory
                 )
             cl.user_session.set("agent_state", new_state)
             await cl.Message(content=new_state.get("output", "No response.")).send()
