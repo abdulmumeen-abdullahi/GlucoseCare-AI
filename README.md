@@ -1,16 +1,7 @@
----
-title: GlucoseCare AI
-emoji: 🩺
-colorFrom: blue
-colorTo: green
-sdk: docker
-app_port: 7860
----
-
 # GlucoseCare AI 🤖🩺
 
 **Agentic Early-Stage Diabetes Risk Consultant**  
-*A stateful, hybrid AI assistant combining LangGraph orchestration, resilient multi-LLM fallback, and a Random Forest clinical classifier to deliver personalized diabetes risk assessments and guideline-aligned preventive care.*
+*A stateful, hybrid AI assistant combining LangGraph orchestration, resilient multi-LLM fallback, and a Random Forest clinical classifier to deliver personalised diabetes risk assessments and guideline-aligned preventive care.*
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://glucosecare-ai.onrender.com/)
 [![Python](https://img.shields.io/badge/Python-3.12.3-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
@@ -25,13 +16,14 @@ app_port: 7860
 
 ## Demo & Walkthrough
 
-<!-- TIP: Drag and drop your recorded .mp4/.mov demo video directly into the GitHub README editor to replace the link below with an auto-playing inline GitHub video player. -->
-🎥 **[Watch the Walkthrough Video](#)** *(Replace `#` with your uploaded GitHub video asset URL or screen-recording link)*
+🎥 **[Watch the Full Walkthrough Video](https://youtu.be/iQPR7SSEnXo)** *(Recommended playback: 720p HD or higher)*
 
 <p align="center">
-  <img width="1366" height="724" alt="GlucoseCare AI Agent Chainlit UI" src="https://github.com/user-attachments/assets/6eb81cba-1a3d-4f4a-8416-91fe6441585b" />
+  <a href="https://youtu.be/iQPR7SSEnXo">
+    <img width="1366" height="724" alt="Watch GlucoseCare AI Walkthrough" src="https://github.com/user-attachments/assets/6eb81cba-1a3d-4f4a-8416-91fe6441585b" />
+  </a>
   <br>
-  <em>Figure 1: GlucoseCare AI interactive Chainlit session demonstrating symptom triage, structured feature collection, and ML-backed risk assessment.</em>
+  <em>Figure 1: Click the preview above to watch the live GlucoseCare AI walkthrough (symptom triage, 12-feature clinical questionnaire, and ML risk assessment).</em>
 </p>
 
 ---
@@ -40,7 +32,7 @@ app_port: 7860
 
 **GlucoseCare AI** bridges conversational AI with deterministic machine learning to address a core challenge in healthcare AI: **preventing LLM hallucination during clinical risk scoring while maintaining natural, empathetic user guidance.**
 
-Instead of asking an LLM to guess a patient's risk, GlucoseCare AI uses a **LangGraph state machine** to classify user intent, guide users through a validated 12-feature clinical questionnaire, run inference against a trained **Random Forest Classifier**, and synthesize actionable lifestyle recommendations aligned with **ADA (American Diabetes Association)**, **IDF (International Diabetes Federation)**, and **WHO (World Health Organization)** guidelines.
+Instead of asking an LLM to guess a patient's risk, GlucoseCare AI uses a **LangGraph state machine** to classify user intent, guide users through a validated 12-feature clinical questionnaire, run inference against a trained **Random Forest Classifier**, and synthesise actionable lifestyle recommendations aligned with **ADA (American Diabetes Association)**, **IDF (International Diabetes Federation)**, and **WHO (World Health Organisation)** guidelines.
 
 ### Key Engineering Highlights
 
@@ -48,12 +40,13 @@ Instead of asking an LLM to guess a patient's risk, GlucoseCare AI uses a **Lang
 - **Stateful Multi-Node Graph (`LangGraph`):** Manages multi-turn conversation state, intent routing, and sequential Q&A checkpoints per session using `MemorySaver` and unique UUID thread IDs.
 - **Resilient Dual-Provider LLM Fallback:** Routes primary inference through **Groq** (`openai/gpt-oss-20b`) for low-latency responses with automatic failover to **Google Gemini** (`gemini-3.8-flash`).
 - **Strict Input Validation (`Pydantic`):** Enforces schema and binary/integer type validation across all 12 clinical indicators (`PatientFeatures`) before passing feature vectors to the ML pipeline.
-- **Production-Ready Async Controls:** Implements `aiolimiter` request throttling (`AsyncLimiter`), session reset commands (`reset`, `/reset`, `restart`), and containerized deployment via **Docker**.
+- **Production-Ready Async Controls:** Implements `aiolimiter` request throttling (`AsyncLimiter`), session reset commands (`reset`, `/reset`, `restart`), and containerised deployment via **Docker**.
 
 ---
 
 ## System Architecture
 
+<img width="415" height="499" alt="architecture" src="https://github.com/user-attachments/assets/f3b4f230-8e5e-409f-883a-3df9704080e2" />
 
 
 ### Tech Stack
